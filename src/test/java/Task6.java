@@ -2,18 +2,22 @@
  * Created by andrii.omelchuk on 4/18/2017.
  */
 import java.io.File;
+import java.util.List;
 
 import io.github.bonigarcia.wdm.ChromeDriverManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import static org.junit.Assert.assertEquals;
 
 public class Task6 {
 
@@ -40,8 +44,15 @@ public class Task6 {
         driver.findElement(By.cssSelector("a[href='http://localhost/litecart/admin/?app=catalog&doc=catalog']"))
                 .click();
 
+        List<WebElement> numberOfItemsBeforeAdd = null;
+        try{
+            numberOfItemsBeforeAdd = driver.findElements(By.linkText("Disco Duck"));
+        }catch(NoSuchElementException e){
+            System.out.println("There were no such items before.");
+            e.printStackTrace();
+        }
         // fill out General page
-        driver.findElement(By.cssSelector("#content > div:nth-child(2) > a:nth-child(2)")).click();
+        driver.findElement(By.linkText("Add New Product")).click();
 
         driver.findElement(By.cssSelector("input[name='status'][value='1']")).click();
         driver.findElement(By.cssSelector("input[name='name[en]']")).sendKeys("Disco Duck");
@@ -52,7 +63,6 @@ public class Task6 {
         driver.findElement(By.cssSelector("input[name='date_valid_to']")).sendKeys("10.01.2018");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("disco-duck.jpg").getFile());
-        System.out.println(file.getPath());
         driver.findElement(By.cssSelector("input[name='new_images[]']")).sendKeys(file.getAbsolutePath());
 
         // fill out Information page
@@ -79,11 +89,10 @@ public class Task6 {
         driver.findElement(By.cssSelector("input[name='gross_prices[EUR]']")).sendKeys("14");
 
         driver.findElement(By.cssSelector("button[type='submit']")).click();
-        Thread.sleep(5000);
-        wait.until(ExpectedConditions.attributeContains(
-                driver.findElement(By.cssSelector(
-                        "body > div > div > div > table > tbody > tr > td:nth-child(3) > form > table > tbody > tr:nth-child(4) > td:nth-child(3) > a")),
-                "textContent", "Disco Duck"));
+        wait.until(ExpectedConditions.elementToBeClickable(driver.findElement(By.linkText("Disco Duck"))));
+        if(!(numberOfItemsBeforeAdd == null)){
+            assertEquals((numberOfItemsBeforeAdd.size()+1),driver.findElements(By.linkText("Disco Duck")).size());
+        }
     }
 
     @After
